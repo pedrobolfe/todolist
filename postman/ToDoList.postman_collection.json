@@ -1,0 +1,284 @@
+{
+  "info": {
+    "_postman_id": "6f3a5842-8576-4a1a-ae4e-2224ab9cd110",
+    "name": "ToDoList - Autenticacao e autorizacao",
+    "description": "Testes da API ToDoList com HTTP Basic. Execute a coleção de cima para baixo: o cadastro guarda o ID criado para usar na busca e nos testes de exclusão.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Listar tarefas sem autenticacao - espera 401",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/tarefas",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Sem credenciais retorna 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Listar tarefas com senha incorreta - espera 401",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/tarefas",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "usuario",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "senha-errada",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Senha incorreta retorna 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Listar tarefas como USER - espera 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/tarefas",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "usuario",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "user123",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('USER pode listar tarefas', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Cadastrar tarefa como USER - espera 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Tarefa criada pelo Postman\",\n  \"descricao\": \"Tarefa usada para testar as permissoes\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/tarefas",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "usuario",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "user123",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('USER pode cadastrar tarefa', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    const tarefa = pm.response.json();",
+              "    pm.test('A resposta inclui o ID da tarefa criada', function () {",
+              "        pm.expect(tarefa.id).to.exist;",
+              "    });",
+              "    if (tarefa.id !== undefined && tarefa.id !== null) {",
+              "        pm.collectionVariables.set('tarefaId', String(tarefa.id));",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Buscar tarefa cadastrada como USER - espera 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/tarefas/{{tarefaId}}",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "usuario",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "user123",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('USER pode buscar tarefa por ID', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Tentar excluir tarefa como USER - espera 403",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/tarefas/{{tarefaId}}",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "usuario",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "user123",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('USER nao pode excluir tarefa', function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Excluir a mesma tarefa como ADMIN - espera 204",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/tarefas/{{tarefaId}}",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "admin123",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('ADMIN pode excluir tarefa', function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "tarefaId",
+      "value": ""
+    }
+  ]
+}
